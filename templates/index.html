@@ -1,0 +1,39 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Message Board</title>
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Message Board</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <li><a href="{{ url_for('register') }}">Register</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <!-- Messages will be displayed here -->
+        <section>
+            <h2>Messages</h2>
+            <div id="messages">
+                {% for message in messages %}
+                <article>
+                    <p>{{ message.content }}</p>
+                </article>
+                {% else %}
+                <p>No messages yet.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 CS 348 Project</p>
+    </footer>
+</body>
+</html>
