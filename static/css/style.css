@@ -71,3 +71,24 @@ footer {
 }
 
 /* Add more styles as you see fit */
+/* Add to style.css */
+
+aside {
+    /* Style your sidebar here */
+    position: absolute;
+    right: 10px; /* or however you want to position it */
+    top: 100px; /* Adjust based on your header's size */
+}
+
+aside form {
+    display: flex;
+    flex-direction: column;
+    width: 200px; /* or whatever width you prefer */
+}
+
+aside input,
+aside button {
+    margin-bottom: 5px; /* Add some space between your form elements */
+}
+
+/* You can add more styling as needed */

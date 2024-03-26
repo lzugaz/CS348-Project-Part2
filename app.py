@@ -2,6 +2,9 @@ from flask import Flask, request, render_template, redirect, url_for, session, f
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import init_db, create_connection
+import openai
+from flask import jsonify
+import requests
 
 # ...
 
@@ -236,6 +239,48 @@ def get_classes():
     classes = cur.fetchall()
     conn.close()
     return render_template('classes_dropdown.html', classes=classes)
+
+
+
+@app.route('/generate_ai_response/<int:message_id>', methods=['POST'])
+def generate_ai_response(message_id):
+    if 'user_id' not in session:
+        # Redirect to login if the user is not in session
+        return redirect(url_for('login'))
+
+    # Fetch the content of the message
+    conn = create_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT content FROM messages WHERE id = ?", (message_id,))
+    message_row = cur.fetchone()
+    
+    if not message_row:
+        return jsonify({'error': 'Message not found'}), 404
+    
+    # Ensure your OpenAI API key is correctly set
+    openai.api_key = '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'
+    
+    try:
+        response = openai.Completion.create(
+          model="gpt-3.5-turbo",  # Updated to a newer model
+          prompt=f"Respond to this message: {message_row['content']}",
+          temperature=0.7,
+          max_tokens=15 
+        )
+        ai_response = response['choices'][0]['text'].strip()  # Adjusted for the latest API
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+       
+    # Insert AI response as a comment in the database
+    cur.execute("INSERT INTO comments (content, message_id, user_id) VALUES (?, ?, ?)", (ai_response, message_id, session['user_id']))
+    conn.commit()
+    conn.close()
+    
+    # Redirect back to the dashboard after the operation
+    return redirect(url_for('dashboard'))
+
+
+
 
 
 if __name__ == '__main__':
