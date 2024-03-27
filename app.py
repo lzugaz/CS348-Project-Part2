@@ -298,7 +298,7 @@ def generate_ai_response(message_id):
         return jsonify({'error': 'Message not found'}), 404
     
     # Ensure your OpenAI API key is correctly set
-    openai.api_key = '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'
+    openai.api_key = 'sk-'
     
     try:
         response = openai.ChatCompletion.create(
