@@ -1,0 +1,29 @@
+<!-- templates/account.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <title>Account</title>
+</head>
+<body>
+    <h1>Account Information</h1>
+    <p>Username: {{ user.username }}</p>
+    <h2>Your Messages</h2>
+    <ul>
+        {% for message in user_messages %}
+        <li>{{ message.content }}</li>
+        {% endfor %}
+    </ul>
+    
+    <h2>Edit Username</h2>
+    <form action="{{ url_for('edit_username') }}" method="POST">
+        <input type="text" name="new_username" placeholder="New username" required>
+        <button type="submit">Update Username</button>
+    </form>
+
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+</body>
+</html>

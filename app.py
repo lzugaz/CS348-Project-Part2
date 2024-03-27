@@ -201,46 +201,6 @@ def search_messages():
     return render_template('dashboard.html', messages=messages)
 
 
-# ...existing Flask routes...
-
-@app.route('/delete_message/<int:message_id>', methods=['POST'])
-def delete_message(message_id):
-    if 'user_id' not in session:
-        flash('You need to login to perform this action.', 'error')
-        return redirect(url_for('login'))
-
-    conn = create_connection()
-    cur = conn.cursor()
-
-    # Optional: Check if the current user is the one who posted the message or is an admin
-    
-    cur.execute("DELETE FROM messages WHERE id = ?", (message_id,))
-    conn.commit()
-    conn.close()
-    flash('Message deleted successfully.', 'success')
-    
-    return redirect(url_for('dashboard'))
-
-@app.route('/delete_comment/<int:comment_id>', methods=['POST'])
-def delete_comment(comment_id):
-    if 'user_id' not in session:
-        flash('You need to login to perform this action.', 'error')
-        return redirect(url_for('login'))
-
-    conn = create_connection()
-    cur = conn.cursor()
-
-    # Optional: Check if the current user is the one who posted the comment or is an admin
-    
-    cur.execute("DELETE FROM comments WHERE id = ?", (comment_id,))
-    conn.commit()
-    conn.close()
-    flash('Comment deleted successfully.', 'success')
-    
-    return redirect(url_for('dashboard'))
-
-# ...remaining Flask routes...
-
 
 
 @app.route('/add_class', methods=['POST'])
@@ -298,17 +258,18 @@ def generate_ai_response(message_id):
         return jsonify({'error': 'Message not found'}), 404
     
     # Ensure your OpenAI API key is correctly set
-    openai.api_key = 'sk-'
+
+    openai.api_key = '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'
+
     
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": f"{message_row['content']}"}
-            ]
+        response = openai.Completion.create(
+          model="gpt-3.5-turbo",  # Updated to a newer model
+          prompt=f"Respond to this message: {message_row['content']}",
+          temperature=0.7,
+          max_tokens=15 
         )
-        ai_response = response['choices'][0]['message']['content']  # Adjusted for the chat completions API
+        ai_response = response['choices'][0]['text'].strip()  # Adjusted for the latest API
     except Exception as e:
         return jsonify({'error': str(e)}), 500
        
@@ -321,8 +282,43 @@ def generate_ai_response(message_id):
     return redirect(url_for('dashboard'))
 
 
+@app.route('/account')
+def account():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    conn = create_connection()
+    cur = conn.cursor()
+    
+    # Fetch user information
+    cur.execute("SELECT username FROM users WHERE id = ?", (user_id,))
+    user = cur.fetchone()
+    
+    # Fetch user messages
+    cur.execute("SELECT id, content FROM messages WHERE user_id = ?", (user_id,))
+    user_messages = cur.fetchall()
+    
+    conn.close()
+    return render_template('account.html', user=user, user_messages=user_messages)
 
 
+
+@app.route('/edit_username', methods=['POST'])
+def edit_username():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    new_username = request.form['new_username']
+    user_id = session['user_id']
+    
+    conn = create_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE users SET username = ? WHERE id = ?", (new_username, user_id))
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for('account'))
 
 if __name__ == '__main__':
     init_db()  # Initialize the database and create tables if they don't exist
