@@ -201,6 +201,46 @@ def search_messages():
     return render_template('dashboard.html', messages=messages)
 
 
+# ...existing Flask routes...
+
+@app.route('/delete_message/<int:message_id>', methods=['POST'])
+def delete_message(message_id):
+    if 'user_id' not in session:
+        flash('You need to login to perform this action.', 'error')
+        return redirect(url_for('login'))
+
+    conn = create_connection()
+    cur = conn.cursor()
+
+    # Optional: Check if the current user is the one who posted the message or is an admin
+    
+    cur.execute("DELETE FROM messages WHERE id = ?", (message_id,))
+    conn.commit()
+    conn.close()
+    flash('Message deleted successfully.', 'success')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/delete_comment/<int:comment_id>', methods=['POST'])
+def delete_comment(comment_id):
+    if 'user_id' not in session:
+        flash('You need to login to perform this action.', 'error')
+        return redirect(url_for('login'))
+
+    conn = create_connection()
+    cur = conn.cursor()
+
+    # Optional: Check if the current user is the one who posted the comment or is an admin
+    
+    cur.execute("DELETE FROM comments WHERE id = ?", (comment_id,))
+    conn.commit()
+    conn.close()
+    flash('Comment deleted successfully.', 'success')
+    
+    return redirect(url_for('dashboard'))
+
+# ...remaining Flask routes...
+
 
 
 @app.route('/add_class', methods=['POST'])
@@ -258,16 +298,17 @@ def generate_ai_response(message_id):
         return jsonify({'error': 'Message not found'}), 404
     
     # Ensure your OpenAI API key is correctly set
-    openai.api_key = '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'
+    openai.api_key = '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'
     
     try:
-        response = openai.Completion.create(
-          model="gpt-3.5-turbo",  # Updated to a newer model
-          prompt=f"Respond to this message: {message_row['content']}",
-          temperature=0.7,
-          max_tokens=15 
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": f"{message_row['content']}"}
+            ]
         )
-        ai_response = response['choices'][0]['text'].strip()  # Adjusted for the latest API
+        ai_response = response['choices'][0]['message']['content']  # Adjusted for the chat completions API
     except Exception as e:
         return jsonify({'error': str(e)}), 500
        

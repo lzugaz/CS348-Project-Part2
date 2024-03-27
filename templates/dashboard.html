@@ -10,7 +10,7 @@
 <body>
     <header class="site-header">
         <div class="header-main">
-            <h1>{{ selected_class_name if selected_class_name else "CS 348 Message Board" }}</h1>
+            <h1>{{ selected_class_name if selected_class_name else "Message Board" }}</h1>
             <!-- Search form -->
             <form action="{{ url_for('search_messages') }}" method="get" class="search-form">
                 <input type="text" name="query" placeholder="Search messages..." required>
@@ -49,18 +49,18 @@
         </form>
     </section>
 
-    <!-- Display messages and comments -->
+
     <section class="messages">
         {% for message in messages %}
         <div class="message-box">
             <div class="message-content">
                 <p>{{ message.content }}</p>
                 <div class="actions">
-                    <form action="/like/{{ message.id }}" method="post">
-                        <button type="submit">Like</button>
-                    </form>
-                    <form action="/dislike/{{ message.id }}" method="post">
-                        <button type="submit">Dislike</button>
+                    <form action="/like/{{ message.id }}" method="post"><button type="submit">Like</button></form>
+                    <form action="/dislike/{{ message.id }}" method="post"><button type="submit">Dislike</button></form>
+                    <!-- Add Delete Message button -->
+                    <form action="/delete_message/{{ message.id }}" method="post">
+                        <button type="submit">Delete Message</button>
                     </form>
                 </div>
             </div>
@@ -68,22 +68,25 @@
                 {% for comment in message.comments %}
                 <div class="comment-box">
                     <p>{{ comment.content }}</p>
+                    <!-- Add Delete Comment button -->
+                    <form action="/delete_comment/{{ comment.id }}" method="post">
+                        <button type="submit">Delete Comment</button>
+                    </form>
                 </div>
                 {% endfor %}
+                <!-- Add Comment form -->
                 <form action="/comment/{{ message.id }}" method="post" class="comment-form">
                     <input type="text" name="content" required placeholder="Add a comment...">
                     <button type="submit">Comment</button>
                 </form>
             </div>
-            <!-- Inside the loop where messages are displayed -->
-                <form action="{{ url_for('generate_ai_response', message_id=message.id) }}" method="post">
-                    <button type="submit">AI Respond</button>
-                </form>
-
+            <!-- AI Respond Button, assuming it's outside the comments div -->
+            <form action="{{ url_for('generate_ai_response', message_id=message.id) }}" method="post">
+                <button type="submit">AI Respond</button>
+            </form>
         </div>
         {% endfor %}
-    </section>
-</body>
+    </section>  
 
 
 <!-- Add this at the end of your body tag -->
