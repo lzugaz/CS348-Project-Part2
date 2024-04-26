@@ -271,9 +271,13 @@ def generate_ai_response(message_id):
         return jsonify({'error': 'Message not found'}), 404
     
     # Ensure your OpenAI API key is correctly set
+<<<<<<< Updated upstream
 
     openai.api_key = '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'
 
+=======
+    openai.api_key = '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'
+>>>>>>> Stashed changes
     
     try:
         response = openai.Completion.create(
