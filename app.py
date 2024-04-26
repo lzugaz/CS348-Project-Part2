@@ -5,6 +5,7 @@ from database import init_db, create_connection
 import openai
 from flask import jsonify
 import requests
+from waitress import serve
 
 # ...
 
@@ -80,18 +81,30 @@ def login():
     return render_template('login.html', error=error)
 
 
+from flask import g
+
 @app.route('/comment/<int:message_id>', methods=['POST'])
 def add_comment(message_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
+    
     content = request.form['content']
     user_id = session['user_id']
+
     conn = create_connection()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO comments (content, message_id, user_id) VALUES (?, ?, ?)", (content, message_id, user_id))
-    conn.commit()
-    conn.close()
+    try:
+        with conn:
+            conn.execute("INSERT INTO comments (content, message_id, user_id) VALUES (?, ?, ?)",
+                         (content, message_id, user_id))
+    except Exception as e:
+        conn.rollback()  # Roll back in case of error
+        flash(f"An error occurred: {str(e)}", 'error')
+        return redirect(url_for('dashboard'))
+    finally:
+        conn.close()
+
     return redirect(url_for('dashboard'))
+
 
 @app.route('/like/<int:message_id>', methods=['POST'])
 def like_message(message_id):
@@ -322,4 +335,4 @@ def edit_username():
 
 if __name__ == '__main__':
     init_db()  # Initialize the database and create tables if they don't exist
-    app.run(debug=True) 
+    serve(app, host='0.0.0.0', port=5000)

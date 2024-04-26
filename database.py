@@ -52,6 +52,15 @@ def init_db():
     ALTER TABLE messages ADD COLUMN class_id INTEGER REFERENCES classes(id);
     """
 
+    # Create indexes for the username and password columns
+    create_username_index = """
+    CREATE INDEX IF NOT EXISTS idx_username ON users (username);
+    """
+
+    create_password_index = """
+    CREATE INDEX IF NOT EXISTS idx_password ON users (password);
+    """
+
     # Execute the create table functions
     cur.execute(create_users_table)
     cur.execute(create_messages_table)
@@ -59,6 +68,8 @@ def init_db():
 
     # Execute the new classes table creation and alter messages table
     cur.execute(create_classes_table)
+    cur.execute(create_username_index)  # Create index for username
+    cur.execute(create_password_index)  # Create index for password
 
     # Check first if the class_id column already exists to avoid an error
     cur.execute("PRAGMA table_info(messages)")
@@ -68,3 +79,4 @@ def init_db():
 
     conn.commit()
     conn.close()
+
